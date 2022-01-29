@@ -1,5 +1,6 @@
-const { time } = require("console");
 const { stdout } = require("process");
+const { open } = require("fs/promises");
+const readline = require("readline");
 
 class Display {
   impl;
@@ -8,22 +9,22 @@ class Display {
     this.impl = impl;
   }
 
-  open() {
-    this.impl.rawOpen();
+  async open() {
+    await this.impl.rawOpen();
   }
 
-  print() {
-    this.impl.rawPrint();
+  async print() {
+    await this.impl.rawPrint();
   }
 
-  close() {
-    this.impl.rawClose();
+  async close() {
+    await this.impl.rawClose();
   }
 
-  display() {
-    this.open();
-    this.print();
-    this.close();
+  async display() {
+    await this.open();
+    await this.print();
+    await this.close();
   }
 }
 
@@ -32,12 +33,12 @@ class CountDisplay extends Display {
     super(impl);
   }
 
-  multiDisplay(times) {
-    this.open();
+  async multiDisplay(times) {
+    await this.open();
     for (let i = 0; i < times; i++) {
-      this.print();
+      await this.print();
     }
-    this.close();
+    await this.close();
   }
 }
 
@@ -65,15 +66,15 @@ class StringDisplayImpl extends DisplayImpl {
     this.width = str.length;
   }
 
-  rawOpen() {
+  async rawOpen() {
     this.printLine();
   }
 
-  rawPrint() {
+  async rawPrint() {
     console.log(`|${this.str}|`);
   }
 
-  rawClose() {
+  async rawClose() {
     this.printLine();
   }
 
@@ -91,9 +92,9 @@ class RandomDisplay extends CountDisplay {
     super(impl);
   }
 
-  randomDisplay(times) {
+  async randomDisplay(times) {
     const randomTimes = Math.floor(Math.random() * (times + 1));
-    this.multiDisplay(randomTimes);
+    await this.multiDisplay(randomTimes);
   }
 }
 
@@ -104,10 +105,10 @@ class IncreaseDisplay extends CountDisplay {
     this.step = step;
   }
 
-  increaseDisplay(level) {
+  async increaseDisplay(level) {
     let count = 0;
     for (let i = 0; i < level; i++) {
-      this.multiDisplay(count);
+      await this.multiDisplay(count);
       count += this.step;
     }
   }
@@ -124,16 +125,48 @@ class CharDisplayImpl extends DisplayImpl {
     this.foot = foot;
   }
 
-  rawOpen() {
+  async rawOpen() {
     stdout.write(this.head);
   }
 
-  rawPrint() {
+  async rawPrint() {
     stdout.write(this.body);
   }
 
-  rawClose() {
+  async rawClose() {
     console.log(this.foot);
+  }
+}
+
+class FileDisplayImpl extends DisplayImpl {
+  filename;
+  constructor(filename) {
+    super();
+    this.filename = filename;
+  }
+
+  async rawOpen() {
+    console.log(`--------------------${this.filename}--------------------`);
+  }
+
+  async rawPrint() {
+    let fd;
+    try {
+      fd = await open(this.filename);
+      const rl = readline.createInterface({
+        input: fd.createReadStream(),
+        crlfDelay: Infinity,
+      });
+      for await (const line of rl) {
+        console.log(line);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  async rawClose() {
+    console.log("=-=-=-=-=-=-=-=-=-=-=-=-=");
   }
 }
 
@@ -143,6 +176,7 @@ let d3 = new CountDisplay(new StringDisplayImpl("hello, universe"));
 let d4 = new RandomDisplay(new StringDisplayImpl("hello, stars"));
 let d5 = new IncreaseDisplay(new CharDisplayImpl("<", "*", ">"), 1);
 let d6 = new IncreaseDisplay(new CharDisplayImpl("|", "#", "-"), 2);
+let d7 = new CountDisplay(new FileDisplayImpl("./test.txt"));
 
 d1.display();
 d2.display();
@@ -150,3 +184,4 @@ d3.multiDisplay(4);
 d4.randomDisplay(7);
 d5.increaseDisplay(5);
 d6.increaseDisplay(5);
+d7.multiDisplay(4);

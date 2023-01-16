@@ -1,95 +1,42 @@
-class Aggregate {
-  constructor() {}
-
-  iterator() {
-    throw new Error("can not call directly");
-  }
-}
-
-class Iterator {
-  constructor() {}
-
-  hasNext() {
-    throw new Error("can not call directly");
-  }
-
-  next() {
-    throw new Error("can not call directly");
-  }
-}
-
-class BookShelf extends Aggregate {
-  books;
-  last = 0;
-
-  constructor(maxSize) {
-    super();
-    this.books = new Array(maxSize);
-  }
-
-  getBookAt(index) {
-    return books[index];
-  }
-
-  appendBook(book) {
-    this.books[this.last] = book;
-    this.last++;
-  }
-
-  getLength() {
-    return this.last;
-  }
-
-  iterator() {
-    return new BookShelfIterator(this);
-  }
-}
-
-class BookShelfIterator extends Iterator {
-  bookShelf;
-  index;
-
-  constructor(bookShelf) {
-    super();
-    this.bookShelf = bookShelf;
-    this.index = 0;
-  }
-
-  hasNext() {
-    return this.index < this.bookShelf.getLength();
-  }
-
-  next() {
-    return this.bookShelf.books[this.index++];
-  }
-}
-
-class Book {
-  name;
-
-  constructor(name) {
-    this.name = name;
-  }
-
-  getName() {
-    return this.name;
-  }
-}
-
-let bookShelf = new BookShelf(10);
-bookShelf.appendBook(new Book("shu 1"));
-bookShelf.appendBook(new Book("shu 2"));
-bookShelf.appendBook(new Book("shu 3"));
-bookShelf.appendBook(new Book("shu 4"));
-bookShelf.appendBook(new Book("shu 5"));
-bookShelf.appendBook(new Book("shu 6"));
-bookShelf.appendBook(new Book("shu 7"));
-bookShelf.appendBook(new Book("shu 8"));
-bookShelf.appendBook(new Book("shu 9"));
-bookShelf.appendBook(new Book("shu 10"));
-
-let bookShelfIterator = bookShelf.iterator();
-
-while (bookShelfIterator.hasNext()) {
-  console.log(bookShelfIterator.next().getName());
+var BrowserHistory = /** @class */ (function () {
+    function BrowserHistory() {
+        this.urls = [];
+    }
+    BrowserHistory.prototype.push = function (url) {
+        this.urls.push(url);
+    };
+    BrowserHistory.prototype.pop = function () {
+        return this.urls.pop();
+    };
+    BrowserHistory.prototype.getUrls = function () {
+        return this.urls;
+    };
+    BrowserHistory.prototype.createIterator = function () {
+        return new BrowserHistoryIterator(this.urls);
+    };
+    return BrowserHistory;
+}());
+var BrowserHistoryIterator = /** @class */ (function () {
+    function BrowserHistoryIterator(urls) {
+        this.index = 0;
+        this.urls = urls;
+    }
+    BrowserHistoryIterator.prototype.hasNext = function () {
+        return this.index < this.urls.length;
+    };
+    BrowserHistoryIterator.prototype.next = function () {
+        var url = this.urls[this.index];
+        this.index++;
+        return url;
+    };
+    return BrowserHistoryIterator;
+}());
+var browserHistory = new BrowserHistory();
+browserHistory.push("url1");
+browserHistory.push("url2");
+browserHistory.push("url3");
+browserHistory.push("url4");
+var browserHistoryIterator = browserHistory.createIterator();
+while (browserHistoryIterator.hasNext()) {
+    console.log(browserHistoryIterator.next());
 }
